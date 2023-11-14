@@ -6,10 +6,11 @@
 enum Token {
     INC,
     DEC,
-    PRINT
+    PRINT,
+    NEXT
 };
 
 
-void read_tokens(char * program, size_t program_length, enum Token * token_storage);
+size_t read_tokens(char * program, size_t program_length, enum Token * token_storage);
 
 #endif

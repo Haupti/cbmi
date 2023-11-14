@@ -16,6 +16,8 @@ build_test:
 test: build_test
 	./$(BUILD)/test
 
-run: build
+exec:
 	./$(BUILD)/bfc
+
+run: build_prod exec
 

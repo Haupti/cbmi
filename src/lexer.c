@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "lexer.h"
 
-void read_tokens(char * program, size_t program_length, enum Token * token_storage){
+size_t read_tokens(char * program, size_t program_length, enum Token * token_storage){
     int token_index = 0;
     for(int i = 0; i < program_length; i++){
         char sym = program[i];
@@ -17,5 +17,12 @@ void read_tokens(char * program, size_t program_length, enum Token * token_stora
             token_storage[token_index] = PRINT;
             token_index += 1;
         }
+        if(sym == '>'){
+            token_storage[token_index] = NEXT;
+            token_index += 1;
+        }
+
     }
+
+    return token_index;
 }
