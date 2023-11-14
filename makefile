@@ -5,13 +5,17 @@ SRC=src
 SOURCES=$(wildcard $(SRC)/*.c)
 TEST_SOURCES=$(wildcard $(TEST)/*.c)
 
-build:
-	gcc -B $(SRC) . -o ./$(BUILD)/bfc \
-		$(SOURCES)
+build_prod:
+	gcc -o ./$(BUILD)/bfc \
+		$(SOURCES) main.c
 
 build_test:
-	gcc -B $(SRC) -B $(TEST) . -o ./$(BUILD)/test \
+	gcc -o ./$(BUILD)/test \
 		$(SOURCES) $(TEST_SOURCES)
 
 test: build_test
-	./build/test
+	./$(BUILD)/test
+
+run: build
+	./$(BUILD)/bfc
+
