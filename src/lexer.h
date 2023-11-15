@@ -7,7 +7,10 @@ enum Token {
     INC,
     DEC,
     PRINT,
-    NEXT
+    NEXT,
+    PREV,
+    LOOP_START,
+    LOOP_END
 };
 
 

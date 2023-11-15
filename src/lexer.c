@@ -21,6 +21,19 @@ size_t read_tokens(char * program, size_t program_length, enum Token * token_sto
             token_storage[token_index] = NEXT;
             token_index += 1;
         }
+        if(sym == '<'){
+            token_storage[token_index] = PREV;
+            token_index += 1;
+        }
+        if(sym == '['){
+            token_storage[token_index] = LOOP_START;
+            token_index += 1;
+        }
+        if(sym == ']'){
+            token_storage[token_index] = LOOP_END;
+            token_index += 1;
+        }
+        // otherwise ignored
 
     }
 
