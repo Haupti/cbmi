@@ -5,5 +5,6 @@
 
 int findMatchingClose(int open_bracket_pos,enum Token * program, int tokens_length);
 int findMatchingOpen(int close_bracket_pos,enum Token * program, int tokens_length);
+int interpret(int token_count, enum Token * program_tokens);
 
 #endif
