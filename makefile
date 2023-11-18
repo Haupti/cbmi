@@ -17,7 +17,7 @@ test: build_test
 	./$(BUILD)/test
 
 exec:
-	./$(BUILD)/bf
+	./$(BUILD)/bf example.bm
 
 run: build_prod exec
 
