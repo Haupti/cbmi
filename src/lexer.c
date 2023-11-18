@@ -117,3 +117,47 @@ size_t read_tokens(char * program, size_t program_length, Token * token_storage)
     return token_index;
 }
 
+void print_tokens(Token * tokens, size_t token_count){
+    for(int i = 0; i < token_count; i++){
+        Token token = tokens[i];
+        switch(token.type){
+            case DEF:
+                printf("DEF\n");
+                break;
+            case DEC:
+                printf("DEC\n");
+                break;
+            case STATEMENT_END:
+                printf("STATEMENT_END\n");
+                break;
+            case ASSIGNMENT_OPERATOR:
+                printf("ASSIGNMENT_OPERATOR\n");
+                break;
+            case INC:
+                printf("INC\n");
+                break;
+            case PRINT:
+                printf("PRINT\n");
+                break;
+            case NEXT:
+                printf("NEXT\n");
+                break;
+            case PREV:
+                printf("PREV\n");
+                break;
+            case LOOP_END:
+                printf("LOOP_END\n");
+                break;
+            case LOOP_START:
+                printf("LOOP_START\n");
+                break;
+            case IDENTIFIER:
+                printf("IDENTIFIER=%s\n",token.value);
+                break;
+            case IDENTIFIER_REF:
+                printf("IDENTIFIER_REF\n");
+                break;
+        }
+    }
+}
+
