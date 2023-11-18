@@ -56,7 +56,7 @@ void print_tokens(Token * tokens, size_t token_count){
                 printf("LOOP_START\n");
                 break;
             case IDENTIFIER:
-                printf("IDENTIFIER\n");
+                printf("IDENTIFIER=%s\n",token.value);
                 break;
             case IDENTIFIER_REF:
                 printf("IDENTIFIER_REF\n");
