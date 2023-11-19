@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "src/lexer.h"
 #include "src/interpreter.h"
 #include "src/fileio.h"
+#include "src/iterator.h"
 
 
 int main(int args, char * argv[]){
@@ -48,7 +50,7 @@ int main(int args, char * argv[]){
 
     size_t token_count = read_tokens(file_content, program_length, programm_tokens);
 
-    print_tokens(programm_tokens, token_count);
+    //print_tokens(programm_tokens, token_count);
     return interpret(token_count, programm_tokens);
 }
 

@@ -1,6 +1,8 @@
+#include "iterator.h"
 #include "lexer.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // returns the positive index of the closing bracket in the program tokens if it is found.
 // if it cannot find it, returns -1 (error case, should not happen);
@@ -56,7 +58,59 @@ int findMatchingOpen(int close_bracket_pos, Token * program, int tokens_length){
 typedef struct Identifier {
     char * name;
     Token * tokens;
+    int tokens_len;
 } Identifier;
+
+void exec_sub(Identifier variable, char * current_byte, char * bytes){
+    TokenIterator it = token_iterator(variable.tokens, variable.tokens_len);
+    Token token = start_iterator(&it);
+
+
+    while(has_next(&it)){
+        token = next_token(&it);
+        switch(token.type){
+                case INC:
+                    bytes[*current_byte] += 1;
+                    break;
+                case DEC:
+                    bytes[*current_byte] -= 1;
+                    break;
+                case NEXT:
+                    *current_byte += 1;
+                    break;
+                case PREV:
+                    *current_byte -= 1;
+                    break;
+                case PRINT:
+                    printf("%c", bytes[*current_byte]);
+                    break;
+                case LOOP_START:
+                    if(bytes[*current_byte] == 0){
+                        int close_cmd = findMatchingClose(it.position, variable.tokens, variable.tokens_len);
+                        if(close_cmd == -1){
+                            printf("error: no closing bracket found\n");
+                            exit(EXIT_FAILURE);
+                        }
+                        go_to_position(&it, close_cmd);
+                    }
+                    break;
+                case LOOP_END:
+                    if(bytes[*current_byte] != 0){
+                        int open_cmd = findMatchingOpen(it.position, variable.tokens, variable.tokens_len);
+                        if(open_cmd == -1){
+                            printf("error: no opening bracket found\n");
+                            exit(EXIT_FAILURE);
+                        }
+                        go_to_position(&it, open_cmd);
+                    }
+                    break;
+                default:
+                    printf("error in subroutine: on token %d token not allowed here\n", it.position);
+                    exit(EXIT_FAILURE);
+                    break;
+        }
+    }
+}
 
 int interpret(int token_count, Token * program_tokens){
     Identifier variables[10000];
@@ -69,49 +123,106 @@ int interpret(int token_count, Token * program_tokens){
     }
 
     char current_byte = 0;
-    int cmd = 0;
-    for(cmd = 0; cmd < token_count; cmd++){
-        Token token = program_tokens[cmd];
-        enum TokenType tokenType = token.type;
-        switch (tokenType) {
-            case DEF:
-                /*if(token_count <= cmd+1 && program_tokens[cmd + 1].type == IDENTIFIER){
-                    int id_token_count = 0;
-                    // TODO marwin: this is too much to
-                    Token id_tokens[10000];
-                    while(token_count >= cmd + 1 + id_token_count){
-                        int current = cmd + 1 + id_token_count;
-                        if(is_allowed_in_variable(program_tokens[current])){
-                            id_tokens[id_token_count] = program_tokens[current];
-                            id_token_count += 1;
-                        }
-                        if(program_tokens[current].type == STATEMENT_END){
-                            id_token_count += 1;
-                            break;
-                        }
-                        else {
-                            printf("error while interpreting variable\nonly operations are allowed to be assigned to a variable\n");
-                            exit(EXIT_FAILURE);
-                        }
-                    }
-                    Token * saved_tokens = malloc((id_token_count - 1) * sizeof(Token));
 
-                    Identifier id = { token.value, id_tokens };
-                    variables[variable_count] = id;
+    TokenIterator it = token_iterator(program_tokens, token_count);
+
+    Token token = start_iterator(&it);
+    int is_first_iteration = 1;
+    while(has_next(&it)){
+        if(is_first_iteration == 0){
+            token = next_token(&it);
+        }
+        else {
+            is_first_iteration = 0;
+        }
+        if(current_byte >= 10 || current_byte < 0){
+            printf("error: at token %d. byte is not available for program", it.position);
+            return EXIT_FAILURE;
+        }
+        switch(token.type) {
+            case DEF:
+                if(!has_next(&it)){
+                    printf("error: at token %d. identifier expected\n", it.position);
+                    return EXIT_FAILURE;
                 }
-                */
+                Token id_token = next_token(&it);
+                if(id_token.type != IDENTIFIER){
+                    printf("error: at token %d. identifier expected\n", it.position);
+                    return EXIT_FAILURE;
+                }
+
+                if(!has_next(&it)){
+                    printf("error: at token %d. assignment expected\n", it.position);
+                    return EXIT_FAILURE;
+                }
+                Token assignment_token = next_token(&it);
+                if(assignment_token.type != ASSIGNMENT_OPERATOR){
+                    printf("error: at token %d. assignment expected\n", it.position);
+                    return EXIT_FAILURE;
+                }
+
+                if(!has_next(&it)){
+                    printf("error: at token %d. end of statement token expected\n", it.position);
+                    return EXIT_FAILURE;
+                }
+
+                Token * variable_tokens = malloc(10000 * sizeof(Token));
+                int variable_tokens_count = 0;
+                token = next_token(&it);
+                int end_reached = 0;
+                while(has_next(&it) && end_reached == 0){
+                    if(token.type == INC
+                        || token.type == DEC
+                        || token.type == NEXT
+                        || token.type == PREV
+                        || token.type == PRINT
+                        || token.type == LOOP_END
+                        || token.type == LOOP_START
+                    ){
+                        variable_tokens[variable_tokens_count] = token;
+                        variable_tokens_count += 1;
+                    } else if(token.type == STATEMENT_END){
+                        end_reached = 1;
+                        break;
+                    } else {
+                        printf("error: at token %d unexpected token within variable assignment\n", it.position);
+                        return EXIT_FAILURE;
+                    }
+                    token = next_token(&it);
+                }
+                Identifier variable = {id_token.value, variable_tokens, variable_tokens_count};
+                variables[variable_count] = variable;
+                variable_count += 1;
                 break;
             case IDENTIFIER:
-                // TODO marwin
+                printf("error: at token %d. identifier without use or assignment\n",it.position);
+                return EXIT_FAILURE;
                 break;
             case STATEMENT_END:
-                // TODO marwin
+                printf("error: at token %d. no statement to end\n",it.position);
+                return EXIT_FAILURE;
                 break;
             case ASSIGNMENT_OPERATOR:
-                // TODO marwin
+                printf("error: at token %d. assignment operator without anything to assign\n",it.position);
+                return EXIT_FAILURE;
                 break;
             case IDENTIFIER_REF:
-                // TODO marwin
+                if(!has_next(&it)){
+                    printf("error: at token %d. unexpected end. identifier expected after reference operator\n",it.position);
+                    return EXIT_FAILURE;
+                }
+                token = next_token(&it);
+                int found_variable = 0;
+                for(int var = 0; var < variable_count; var++){
+                    if(strcmp(variables[var].name,token.value) == 0){
+                        found_variable = 1;
+                        exec_sub(variables[var], &current_byte, bytes);
+                        break;
+                    }
+                }
+                if(found_variable != 1){
+                    printf("error: at token %d.identifier not known\n", it.position);
+                }
                 break;
             case INC:
                 bytes[current_byte] += 1;
@@ -130,25 +241,26 @@ int interpret(int token_count, Token * program_tokens){
                 break;
             case LOOP_START:
                 if(bytes[current_byte] == 0){
-                    int close_cmd = findMatchingClose(cmd, program_tokens, token_count);
+                    int close_cmd = findMatchingClose(it.position, program_tokens, token_count);
                     if(close_cmd == -1){
-                        printf("error: no closing bracket found");
-                        exit(EXIT_FAILURE);
+                        printf("error: no closing bracket found\n");
+                        return EXIT_FAILURE;
                     }
-                    cmd = close_cmd;
+                    go_to_position(&it, close_cmd);
                 }
                 break;
             case LOOP_END:
                 if(bytes[current_byte] != 0){
-                    int open_cmd = findMatchingOpen(cmd, program_tokens, token_count);
+                    int open_cmd = findMatchingOpen(it.position, program_tokens, token_count);
                     if(open_cmd == -1){
-                        printf("error: no opening bracket found");
-                        exit(EXIT_FAILURE);
+                        printf("error: no opening bracket found\n");
+                        return EXIT_FAILURE;
                     }
-                    cmd = open_cmd;
+                    go_to_position(&it, open_cmd);
                 }
                 break;
-       }
+        }
+
     }
     return EXIT_SUCCESS;
 }
