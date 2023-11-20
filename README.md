@@ -23,7 +23,8 @@ This will not work:\
 
 to reference an identifier prefix it with \* within regular brainf*ck code:\
 `
-def letter_A = ++++++++++[>++++++<-]>+++++.;\
+def letter_A = ++++++++++[>++++++<-]>+++++.;
+
 *letter_A>++++++++++[>+++<-]>+++.
 `
 which prints 'A!'.
