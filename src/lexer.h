@@ -15,7 +15,8 @@ enum TokenType {
     IDENTIFIER,
     STATEMENT_END,
     IDENTIFIER_REF,
-    ASSIGNMENT_OPERATOR
+    ASSIGNMENT_OPERATOR,
+    READ_INPUT
 };
 
 typedef struct Token {

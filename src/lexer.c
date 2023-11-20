@@ -76,6 +76,11 @@ size_t read_tokens(char * program, size_t program_length, Token * token_storage)
             token_index += 1;
             continue;
         }
+        if(sym == ','){
+            Token token = { READ_INPUT, NULL};
+            token_storage[token_index] = token;
+            token_index += 1;
+        }
         if(sym == ' '){
             continue;
         }
@@ -159,6 +164,9 @@ void print_token(Token token){
             break;
         case IDENTIFIER_REF:
             printf("IDENTIFIER_REF\n");
+            break;
+        case READ_INPUT:
+            printf("READ_INPUT\n");
             break;
     }
 }

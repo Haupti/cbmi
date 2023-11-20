@@ -150,6 +150,7 @@ Identifier read_identifier_and_jump_to_statement_end(TokenIterator * it){
             || token.type == PRINT
             || token.type == LOOP_END
             || token.type == LOOP_START
+            || token.type == READ_INPUT
         ){
             variable_tokens[variable_tokens_count] = token;
             variable_tokens_count += 1;
@@ -171,8 +172,9 @@ int interpret(int token_count, Token * program_tokens){
     int variable_count = 0;
 
     // set all bytes to zero
-    char bytes[10];
-    for(int i = 0; i < 10; i++){
+    int bytes_len = 10000;
+    char bytes[bytes_len];
+    for(int i = 0; i < bytes_len; i++){
         bytes[i] = '\0';
     }
 
@@ -182,7 +184,7 @@ int interpret(int token_count, Token * program_tokens){
 
     Token token = start_iterator(&it);
     while(has_next(&it)){
-        if(current_byte >= 10 || current_byte < 0){
+        if(current_byte >= bytes_len || current_byte < 0){
             printf("error: at token %d. byte is not available for program", it.position);
             return EXIT_FAILURE;
         }
@@ -256,6 +258,9 @@ int interpret(int token_count, Token * program_tokens){
                     }
                     go_to_position(&it, open_cmd-1); // go to the command before because next_token will be called before next iteration
                 }
+                break;
+            case READ_INPUT:
+                bytes[current_byte] = getchar();
                 break;
         }
         token = next_token(&it);
