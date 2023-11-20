@@ -11,7 +11,7 @@ the interpreter features only these following options:\
 
 # language features
 its a superset to brainf*ck with identifiers.\
-to declare an identifier write something like that:\
+to declare an identifier write something like that:
 
 `def <identifier_name> = <brainf*ck_code>;`\
 for example:\
@@ -23,7 +23,7 @@ This will not work:\
 
 to reference an identifier prefix it with \* within regular brainf*ck code:\
 `
-def letter_A = ++++++++++[>++++++<-]>+++++.;
+def letter_A = ++++++++++[>++++++<-]>+++++.;\
 *letter_A>++++++++++[>+++<-]>+++.
 `
 which prints 'A!'.
