@@ -61,6 +61,28 @@ typedef struct Identifier {
     int tokens_len;
 } Identifier;
 
+void handle_loop_start_move(char * bytes, char * current_byte, TokenIterator * it, Token * tokens, int tokens_len){
+    if(bytes[*current_byte] == 0){
+        int close_cmd = findMatchingClose(it->position, tokens, tokens_len);
+        if(close_cmd == -1){
+            printf("error: no closing bracket found\n");
+            exit(EXIT_FAILURE);
+        }
+        go_to_position(it, close_cmd-1);
+    }
+}
+
+void handle_loop_end_move(char * bytes, char * current_byte, TokenIterator * it, Token * tokens, int tokens_len){
+    if(bytes[*current_byte] != 0){
+        int open_cmd = findMatchingOpen(it->position, tokens, tokens_len);
+        if(open_cmd == -1){
+            printf("error: no opening bracket found\n");
+            exit(EXIT_FAILURE);
+        }
+        go_to_position(it, open_cmd-1);
+    }
+}
+
 void exec_sub(Identifier variable, char * current_byte, char * bytes){
     TokenIterator it = token_iterator(variable.tokens, variable.tokens_len);
 
@@ -83,24 +105,10 @@ void exec_sub(Identifier variable, char * current_byte, char * bytes){
                     printf("%c", bytes[*current_byte]);
                     break;
                 case LOOP_START:
-                    if(bytes[*current_byte] == 0){
-                        int close_cmd = findMatchingClose(it.position, variable.tokens, variable.tokens_len);
-                        if(close_cmd == -1){
-                            printf("error: no closing bracket found\n");
-                            exit(EXIT_FAILURE);
-                        }
-                        go_to_position(&it, close_cmd-1);
-                    }
+                    handle_loop_start_move(bytes, current_byte, &it, variable.tokens, variable.tokens_len);
                     break;
                 case LOOP_END:
-                    if(bytes[*current_byte] != 0){
-                        int open_cmd = findMatchingOpen(it.position, variable.tokens, variable.tokens_len);
-                        if(open_cmd == -1){
-                            printf("error: no opening bracket found\n");
-                            exit(EXIT_FAILURE);
-                        }
-                        go_to_position(&it, open_cmd-1);
-                    }
+                    handle_loop_end_move(bytes, current_byte, &it, variable.tokens, variable.tokens_len);
                     break;
                 default:
                     printf("error in subroutine: on token %d token not allowed here\n", it.position);
@@ -240,24 +248,10 @@ int interpret(int token_count, Token * program_tokens){
                 printf("%c", bytes[current_byte]);
                 break;
             case LOOP_START:
-                if(bytes[current_byte] == 0){
-                    int close_cmd = findMatchingClose(it.position, program_tokens, token_count);
-                    if(close_cmd == -1){
-                        printf("error: no closing bracket found\n");
-                        return EXIT_FAILURE;
-                    }
-                    go_to_position(&it, close_cmd-1); // go to the command before becasue next_token will be called before next iteration
-                }
+                handle_loop_start_move(bytes, &current_byte, &it, program_tokens, token_count);
                 break;
             case LOOP_END:
-                if(bytes[current_byte] != 0){
-                    int open_cmd = findMatchingOpen(it.position, program_tokens, token_count);
-                    if(open_cmd == -1){
-                        printf("error: no opening bracket found\n");
-                        return EXIT_FAILURE;
-                    }
-                    go_to_position(&it, open_cmd-1); // go to the command before because next_token will be called before next iteration
-                }
+                handle_loop_end_move(bytes, &current_byte, &it, program_tokens, token_count);
                 break;
             case READ_INPUT:
                 bytes[current_byte] = getchar();
