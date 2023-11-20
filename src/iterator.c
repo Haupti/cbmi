@@ -13,6 +13,13 @@ Token next_token(TokenIterator * it){
     return it->arr[(it->position)];
 }
 
+Token current_token(TokenIterator * it){
+    if(it->arr_len == 0){
+        puts("iterator empty");
+        exit(EXIT_FAILURE);
+    }
+    return it->arr[(it->position)];
+}
 
 TokenIterator token_iterator(Token * arr, size_t length){
     TokenIterator it = {arr, length, 0};

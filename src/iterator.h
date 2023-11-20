@@ -15,5 +15,6 @@ Token start_iterator(TokenIterator * it);
 TokenIterator token_iterator(Token * arr, size_t length);
 int has_next(TokenIterator * it);
 void go_to_position(TokenIterator * it, int pos);
+Token current_token(TokenIterator * it);
 
 #endif

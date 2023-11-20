@@ -26,6 +26,7 @@ typedef struct Token {
 
 size_t read_tokens(char * program, size_t program_length, Token * token_storage);
 
+void print_token(Token token);
 void print_tokens(Token * tokens, size_t token_count);
 
 #endif

@@ -63,11 +63,9 @@ typedef struct Identifier {
 
 void exec_sub(Identifier variable, char * current_byte, char * bytes){
     TokenIterator it = token_iterator(variable.tokens, variable.tokens_len);
+
     Token token = start_iterator(&it);
-
-
     while(has_next(&it)){
-        token = next_token(&it);
         switch(token.type){
                 case INC:
                     bytes[*current_byte] += 1;
@@ -91,7 +89,7 @@ void exec_sub(Identifier variable, char * current_byte, char * bytes){
                             printf("error: no closing bracket found\n");
                             exit(EXIT_FAILURE);
                         }
-                        go_to_position(&it, close_cmd);
+                        go_to_position(&it, close_cmd-1);
                     }
                     break;
                 case LOOP_END:
@@ -101,7 +99,7 @@ void exec_sub(Identifier variable, char * current_byte, char * bytes){
                             printf("error: no opening bracket found\n");
                             exit(EXIT_FAILURE);
                         }
-                        go_to_position(&it, open_cmd);
+                        go_to_position(&it, open_cmd-1);
                     }
                     break;
                 default:
@@ -109,7 +107,63 @@ void exec_sub(Identifier variable, char * current_byte, char * bytes){
                     exit(EXIT_FAILURE);
                     break;
         }
+        token = next_token(&it);
     }
+}
+
+Identifier read_identifier_and_jump_to_statement_end(TokenIterator * it){
+    if(!has_next(it)){
+        printf("error: at token %d. identifier expected\n", it->position);
+        exit(EXIT_FAILURE);
+    }
+    Token id_token = next_token(it);
+    if(id_token.type != IDENTIFIER){
+        printf("error: at token %d. identifier expected\n", it->position);
+        exit(EXIT_FAILURE);
+    }
+
+    if(!has_next(it)){
+        printf("error: at token %d. assignment expected\n", it->position);
+        exit(EXIT_FAILURE);
+    }
+    Token assignment_token = next_token(it);
+    if(assignment_token.type != ASSIGNMENT_OPERATOR){
+        printf("error: at token %d. assignment expected\n", it->position);
+        exit(EXIT_FAILURE);
+    }
+
+    if(!has_next(it)){
+        printf("error: at token %d. end of statement token expected\n", it->position);
+        exit(EXIT_FAILURE);
+    }
+
+    Token * variable_tokens = malloc(10000 * sizeof(Token));
+    // TODO marwin: reduce size to what is needed after completing read
+    int variable_tokens_count = 0;
+    Token token = next_token(it);
+    int end_reached = 0;
+    while(has_next(it) && end_reached == 0){
+        if(token.type == INC
+            || token.type == DEC
+            || token.type == NEXT
+            || token.type == PREV
+            || token.type == PRINT
+            || token.type == LOOP_END
+            || token.type == LOOP_START
+        ){
+            variable_tokens[variable_tokens_count] = token;
+            variable_tokens_count += 1;
+        } else if(token.type == STATEMENT_END){
+            end_reached = 1;
+            break;
+        } else {
+            printf("error: at token %d unexpected token within variable assignment\n", it->position);
+            exit(EXIT_FAILURE);
+        }
+        token = next_token(it);
+    }
+    Identifier variable = {id_token.value, variable_tokens, variable_tokens_count};
+    return variable;
 }
 
 int interpret(int token_count, Token * program_tokens){
@@ -127,72 +181,16 @@ int interpret(int token_count, Token * program_tokens){
     TokenIterator it = token_iterator(program_tokens, token_count);
 
     Token token = start_iterator(&it);
-    int is_first_iteration = 1;
     while(has_next(&it)){
-        if(is_first_iteration == 0){
-            token = next_token(&it);
-        }
-        else {
-            is_first_iteration = 0;
-        }
         if(current_byte >= 10 || current_byte < 0){
             printf("error: at token %d. byte is not available for program", it.position);
             return EXIT_FAILURE;
         }
         switch(token.type) {
             case DEF:
-                if(!has_next(&it)){
-                    printf("error: at token %d. identifier expected\n", it.position);
-                    return EXIT_FAILURE;
-                }
-                Token id_token = next_token(&it);
-                if(id_token.type != IDENTIFIER){
-                    printf("error: at token %d. identifier expected\n", it.position);
-                    return EXIT_FAILURE;
-                }
-
-                if(!has_next(&it)){
-                    printf("error: at token %d. assignment expected\n", it.position);
-                    return EXIT_FAILURE;
-                }
-                Token assignment_token = next_token(&it);
-                if(assignment_token.type != ASSIGNMENT_OPERATOR){
-                    printf("error: at token %d. assignment expected\n", it.position);
-                    return EXIT_FAILURE;
-                }
-
-                if(!has_next(&it)){
-                    printf("error: at token %d. end of statement token expected\n", it.position);
-                    return EXIT_FAILURE;
-                }
-
-                Token * variable_tokens = malloc(10000 * sizeof(Token));
-                int variable_tokens_count = 0;
-                token = next_token(&it);
-                int end_reached = 0;
-                while(has_next(&it) && end_reached == 0){
-                    if(token.type == INC
-                        || token.type == DEC
-                        || token.type == NEXT
-                        || token.type == PREV
-                        || token.type == PRINT
-                        || token.type == LOOP_END
-                        || token.type == LOOP_START
-                    ){
-                        variable_tokens[variable_tokens_count] = token;
-                        variable_tokens_count += 1;
-                    } else if(token.type == STATEMENT_END){
-                        end_reached = 1;
-                        break;
-                    } else {
-                        printf("error: at token %d unexpected token within variable assignment\n", it.position);
-                        return EXIT_FAILURE;
-                    }
-                    token = next_token(&it);
-                }
-                Identifier variable = {id_token.value, variable_tokens, variable_tokens_count};
-                variables[variable_count] = variable;
+                variables[variable_count] = read_identifier_and_jump_to_statement_end(&it);
                 variable_count += 1;
+                token = current_token(&it);
                 break;
             case IDENTIFIER:
                 printf("error: at token %d. identifier without use or assignment\n",it.position);
@@ -246,7 +244,7 @@ int interpret(int token_count, Token * program_tokens){
                         printf("error: no closing bracket found\n");
                         return EXIT_FAILURE;
                     }
-                    go_to_position(&it, close_cmd);
+                    go_to_position(&it, close_cmd-1); // go to the command before becasue next_token will be called before next iteration
                 }
                 break;
             case LOOP_END:
@@ -256,10 +254,11 @@ int interpret(int token_count, Token * program_tokens){
                         printf("error: no opening bracket found\n");
                         return EXIT_FAILURE;
                     }
-                    go_to_position(&it, open_cmd);
+                    go_to_position(&it, open_cmd-1); // go to the command before because next_token will be called before next iteration
                 }
                 break;
         }
+        token = next_token(&it);
 
     }
     return EXIT_SUCCESS;

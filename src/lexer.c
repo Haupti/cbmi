@@ -104,8 +104,6 @@ size_t read_tokens(char * program, size_t program_length, Token * token_storage)
                 identifier_counter += 1;
             }
             identifier[identifier_counter] = '\0';
-            printf("id_counter: %d\n", identifier_counter);
-            printf("identifier: %s\n", identifier);
             Token token = { IDENTIFIER, identifier };
             token_storage[token_index] = token;
             token_index += 1;
@@ -124,47 +122,50 @@ size_t read_tokens(char * program, size_t program_length, Token * token_storage)
     return token_index;
 }
 
+void print_token(Token token){
+    switch(token.type){
+        case DEF:
+            printf("DEF\n");
+            break;
+        case DEC:
+            printf("DEC\n");
+            break;
+        case STATEMENT_END:
+            printf("STATEMENT_END\n");
+            break;
+        case ASSIGNMENT_OPERATOR:
+            printf("ASSIGNMENT_OPERATOR\n");
+            break;
+        case INC:
+            printf("INC\n");
+            break;
+        case PRINT:
+            printf("PRINT\n");
+            break;
+        case NEXT:
+            printf("NEXT\n");
+            break;
+        case PREV:
+            printf("PREV\n");
+            break;
+        case LOOP_END:
+            printf("LOOP_END\n");
+            break;
+        case LOOP_START:
+            printf("LOOP_START\n");
+            break;
+        case IDENTIFIER:
+            printf("IDENTIFIER=%s\n",token.value);
+            break;
+        case IDENTIFIER_REF:
+            printf("IDENTIFIER_REF\n");
+            break;
+    }
+}
 void print_tokens(Token * tokens, size_t token_count){
     for(int i = 0; i < token_count; i++){
         Token token = tokens[i];
-        switch(token.type){
-            case DEF:
-                printf("DEF\n");
-                break;
-            case DEC:
-                printf("DEC\n");
-                break;
-            case STATEMENT_END:
-                printf("STATEMENT_END\n");
-                break;
-            case ASSIGNMENT_OPERATOR:
-                printf("ASSIGNMENT_OPERATOR\n");
-                break;
-            case INC:
-                printf("INC\n");
-                break;
-            case PRINT:
-                printf("PRINT\n");
-                break;
-            case NEXT:
-                printf("NEXT\n");
-                break;
-            case PREV:
-                printf("PREV\n");
-                break;
-            case LOOP_END:
-                printf("LOOP_END\n");
-                break;
-            case LOOP_START:
-                printf("LOOP_START\n");
-                break;
-            case IDENTIFIER:
-                printf("IDENTIFIER=%s\n",token.value);
-                break;
-            case IDENTIFIER_REF:
-                printf("IDENTIFIER_REF\n");
-                break;
-        }
+        print_token(token);
     }
 }
 
