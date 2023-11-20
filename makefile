@@ -6,7 +6,7 @@ SOURCES=$(wildcard $(SRC)/*.c)
 TEST_SOURCES=$(wildcard $(TEST)/*.c)
 
 build_prod:
-	gcc -o ./$(BUILD)/bf \
+	gcc -o ./$(BUILD)/bmi \
 		$(SOURCES) main.c
 
 build_test:
@@ -17,7 +17,7 @@ test: build_test
 	./$(BUILD)/test
 
 exec:
-	./$(BUILD)/bf example.bm
+	./$(BUILD)/bmi example.bm
 
 run: build_prod exec
 
