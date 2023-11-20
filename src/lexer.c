@@ -3,7 +3,12 @@
 #include "lexer.h"
 
 int is_identifier_part(char sym) {
-    return (90 >= sym && sym >= 65) || (122 >= sym && sym >= 97) || sym == 95;
+    char A = 65;
+    char Z = 90;
+    char a = 97;
+    char z = 122;
+    char underscore = 95;
+    return (Z >= sym && sym >= A) || (z >= sym && sym >= a) || sym == underscore;
 }
 
 size_t read_tokens(char * program, size_t program_length, Token * token_storage){
@@ -98,7 +103,9 @@ size_t read_tokens(char * program, size_t program_length, Token * token_storage)
                 identifier[identifier_counter]= program[i+identifier_counter];
                 identifier_counter += 1;
             }
-            identifier[identifier_counter+1] = '\0';
+            identifier[identifier_counter] = '\0';
+            printf("id_counter: %d\n", identifier_counter);
+            printf("identifier: %s\n", identifier);
             Token token = { IDENTIFIER, identifier };
             token_storage[token_index] = token;
             token_index += 1;
